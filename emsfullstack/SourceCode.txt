@@ -1,0 +1,289 @@
+﻿GitHub Link : https://github.com/bhavyaarora0016/ems_fullstack
+
+=======================================================================
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity;
+using System.Linq;
+using System.Runtime.Remoting.Contexts;
+using System.Text;
+using System.Threading.Tasks;
+using bal;
+namespace dal
+{
+    public class MyContext : DbContext
+    {
+        public MyContext() : base("Myc")
+        {
+         
+
+            Database.SetInitializer<MyContext>(new CreateDatabaseIfNotExists<MyContext>());
+        }
+
+        public virtual DbSet<EmpProfiles> emptable { get; set; }
+       
+
+    }
+    public class DAL
+        {
+    public List<EmpProfiles> GetCustomers()
+    {
+        MyContext context = new MyContext();
+
+        List<EmpProfiles> clist = context.emptable.ToList();
+        List<EmpProfiles> cblists = new List<EmpProfiles>();
+        foreach (var item in clist)
+        {
+            cblists.Add(new EmpProfiles { EmpCode = item.EmpCode,
+               EmpName=item.EmpName,Email=item.Email,
+            
+                DeptCode=item.EmpCode
+            });
+
+
+
+        }
+        return cblists;
+
+
+
+
+    }
+    public void Insertcustomer(EmpProfiles bal)
+    {
+        MyContext context = new MyContext();
+            EmpProfiles c = new EmpProfiles();
+        c.EmpCode = bal.EmpCode;
+        c.EmpName = bal.EmpName;
+            c.Email = bal.Email;
+     
+      c.DeptCode = bal.DeptCode;
+        context.emptable.Add(c);
+        context.SaveChanges();
+
+    }
+   public void UpdateCustomer(EmpProfiles bal)
+    {
+        MyContext context = new MyContext();
+        List<EmpProfiles> customers = context.emptable.ToList();
+            EmpProfiles obj
+                = customers.Find(cust => cust.EmpCode == bal.EmpCode);
+            obj.EmpCode = bal.EmpCode;
+            obj.EmpName = bal.EmpName;
+            obj.Email = bal.Email;
+         
+            obj.DeptCode = bal.DeptCode;
+            context.SaveChanges();
+
+         
+        }
+
+      
+        public void Remove(int id)
+        {
+            MyContext context = new MyContext();
+            var ans = context.emptable.ToList().Find(temp => temp.EmpCode == id);
+            context.emptable.Remove(ans);
+            context.SaveChanges();
+        }
+        public EmpProfiles search(int id)
+        {
+            MyContext context = new MyContext();
+            var customers = context.emptable.ToList();
+            var obj = customers.Find(cust => cust.EmpCode == id);
+
+            // List<BLClass1> cblist = new List<BLClass1>();
+            EmpProfiles b = new EmpProfiles();
+            b.EmpName = obj.EmpName;
+            b.EmpCode = obj.EmpCode;
+            b.Email = obj.Email;
+            b.DeptCode = obj.DeptCode;
+            
+
+
+            return b;
+
+            //context.SaveChanges();
+        }
+    }
+}
+
+
+============================================
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Reflection.Emit;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace bal
+{
+   
+    public  class EmpProfiles
+    {
+        [Key]
+        public int EmpCode { get; set; }    
+
+public string EmpName { get; set; } 
+public string Email { get; set; }
+
+public int DeptCode { get; set; }
+
+      
+  
+
+
+
+
+
+
+    }
+
+}
+
+=========================================
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace emsfullstack.Controllers
+{
+    public class HomeController : Controller
+    {
+        public ActionResult Index()
+        {
+            ViewBag.Title = "Home Page";
+
+            return View();
+        }
+    }
+}
+
+==============================
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using bal;
+using dal;
+using emsfullstack.Models;
+
+
+namespace emsfullstack.Controllers
+{
+   
+    public class ValuesController : ApiController
+    {
+        // GET api/values
+      
+            // GET api/<controller>
+            DAL obj = null;
+            public ValuesController()
+            {
+                obj = new DAL();
+            }
+
+        //[Route("GetAllEmps")]
+        [HttpGet]
+        public List<empmodel> Get()
+            {
+                //return new string[] { "value1", "value2" };
+
+                List<EmpProfiles> empbal = new List<EmpProfiles>(); empbal = obj.GetCustomers();
+                List<empmodel> emps = new List<empmodel>();
+                foreach (var item in empbal)
+                {
+                    //Employees emp = new Employees();
+                    emps.Add(new empmodel
+                    {
+                        EmpCode = item.EmpCode,
+                        Email = item.Email,
+                        EmpName = item.EmpName,
+                    //    DateOfBirth = item.DateOfBirth,
+                        DeptCode = item.DeptCode
+                    });
+                }
+                return emps;
+
+            }
+
+            // GET api/values/5
+            public string Get(int id)
+            {
+                return "value";
+            }
+
+        // POST api/values
+        public void Post([FromBody] empmodel empdata)
+        {
+            EmpProfiles empbal = new EmpProfiles();
+            empbal.EmpCode = empdata.EmpCode;
+            empbal.Email = empdata.Email;
+            empbal.EmpName = empdata.EmpName;
+            empbal.DeptCode = empdata.DeptCode;
+          
+
+
+             obj.Insertcustomer(empbal);
+           
+
+        }
+
+        // PUT api/values/5
+        [HttpPut]
+        public void Put( [FromBody] empmodel empdata)
+        {
+
+            EmpProfiles empbal = new EmpProfiles();
+            empbal.EmpCode = empdata.EmpCode;
+            empbal.Email = empdata.Email;
+            empbal.EmpName = empdata.EmpName;
+            empbal.DeptCode = empdata.DeptCode;
+
+           obj.UpdateCustomer(empbal);
+         
+        }
+
+            
+        // DELETE api/values/5
+        public void Delete(int id)
+        {
+            
+            obj.Remove(id);
+           
+
+        }
+        [Route("FindById/{id:int?}")]
+        public empmodel GetMarkByID(int id)
+        {
+            EmpProfiles empbal = new EmpProfiles();
+            empbal = obj.search(id);
+            empmodel emp = new empmodel();
+           
+            emp.EmpCode = id;
+            emp.EmpName = empbal.EmpName;
+            emp.Email = empbal.Email;
+            emp.DeptCode = empbal.DeptCode;
+           
+
+            return emp;
+
+        }
+
+
+
+    }
+}
+
